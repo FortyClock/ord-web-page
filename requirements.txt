@@ -1,0 +1,2 @@
+pelican[markdown]
+minchin.pelican.plugins.static-comments

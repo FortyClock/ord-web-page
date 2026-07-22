@@ -1,0 +1,85 @@
+{% macro comments_form(article) %}
+<section class="comment-form-section">
+  <h3>Оставить комментарий</h3>
+  <form id="pcs-comment-form" class="comment-form" action="#">
+    <input type="hidden" id="pcs-comment-form-input-replyto">
+
+    <label for="pcs-comment-form-input-name">Имя</label>
+    <input id="pcs-comment-form-input-name" type="text" placeholder="Как вас подписать" required>
+
+    <label for="pcs-comment-form-input-website">Сайт</label>
+    <input id="pcs-comment-form-input-website" type="url" placeholder="https://example.com">
+
+    <label for="pcs-comment-form-input-textarea">Комментарий</label>
+    <textarea id="pcs-comment-form-input-textarea" rows="7" placeholder="Текст комментария" required></textarea>
+
+    <div id="pcs-comment-form-display-replyto" class="reply-note" hidden></div>
+
+    <button type="submit">Отправить на модерацию</button>
+    <p class="form-note">Комментарий откроется в почтовом клиенте. После модерации он появится на сайте.</p>
+  </form>
+</section>
+{% endmacro %}
+
+{% macro comments_with_form(article) %}
+<section id="pcs-comments" class="comments">
+  <h2>Комментарии</h2>
+
+  {% if article.comments %}
+  <ol class="comment-list">
+    {% for comment in article.comments recursive %}
+    <li id="comment-{{ comment.slug }}" class="comment">
+      <article class="comment-body">
+        <header class="comment-header">
+          {% if comment.avatar %}
+          <img class="comment-avatar" src="{{ SITEURL }}/{{ comment.avatar }}" alt="" width="{{ PELICAN_COMMENT_SYSTEM_IDENTICON_SIZE }}" height="{{ PELICAN_COMMENT_SYSTEM_IDENTICON_SIZE }}">
+          {% endif %}
+          <div>
+            <h3>
+              {% if comment.metadata.get("website") %}
+              <a href="{{ comment.metadata["website"] }}" rel="nofollow">{{ comment.author }}</a>
+              {% else %}
+              {{ comment.author }}
+              {% endif %}
+            </h3>
+            <time datetime="{{ comment.date.isoformat() }}">{{ comment.locale_date }}</time>
+          </div>
+        </header>
+
+        <div class="comment-content">
+          {{ comment.content }}
+        </div>
+
+        <p class="comment-actions">
+          <a href="{{ SITEURL }}/{{ article.url }}#comment-{{ comment.slug }}">Ссылка</a>
+          <button type="button" onclick="CommentSystem.setReply('{{ comment.slug | urlencode }}', '{{ comment.author | urlencode }}');">Ответить</button>
+        </p>
+      </article>
+
+      {% if comment.replies %}
+      <ol class="comment-list comment-replies">
+        {{ loop(comment.replies) }}
+      </ol>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p>Комментариев пока нет.</p>
+  {% endif %}
+
+  {{ comments_form(article) }}
+</section>
+{% endmacro %}
+
+{% macro comments_js(article) %}
+<script>
+window.CommentSettings = {
+  emailUser: "{{ PELICAN_COMMENT_SYSTEM_EMAIL_USER }}",
+  emailDomain: "{{ PELICAN_COMMENT_SYSTEM_EMAIL_DOMAIN }}",
+  articleSlug: "{{ article.slug }}",
+  articleTitle: "{{ article.title|e }}"
+};
+</script>
+<script src="{{ SITEURL }}/{{ THEME_STATIC_DIR }}/js/comments.js"></script>
+{% endmacro %}
